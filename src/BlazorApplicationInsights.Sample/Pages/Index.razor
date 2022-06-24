@@ -10,12 +10,23 @@
 <br />
 
 <button class="btn btn-primary" @onclick="TrackEvent">Track Event</button>
+<button class="btn btn-danger" @onclick="TrackException">Track Exception</button>
 
 @code {
     [Inject] private IApplicationInsights AppInsights { get; set; }
 
     private async Task TrackEvent()
     {
-        await AppInsights.TrackEvent("My Event");
+        await AppInsights.TrackEvent("My Event", new Dictionary<string, object>()
+        {
+            { "customProperty", "customValue" }
+        });
+
+        await AppInsights.Flush();
+    }
+
+    private void TrackException()
+    {
+        throw new Exception("Something wrong happened :(");
     }
 }
