@@ -7,11 +7,26 @@ namespace BlazorApplicationInsights
 {
     public class ApplicationInsights : IApplicationInsights
     {
-        private readonly IJSRuntime JSRuntime;
+        private IJSRuntime? JSRuntime { get; set; }
+        private Func<IApplicationInsights, Task>? OnInsightsInitAction { get; }
 
-        public ApplicationInsights(IJSRuntime jsRuntime)
+        public ApplicationInsights()
         {
-            JSRuntime = jsRuntime;
+        }
+
+        public ApplicationInsights(Func<IApplicationInsights, Task> onInsightsInitAction)
+        {
+            OnInsightsInitAction = onInsightsInitAction;
+        }
+
+        public async Task InitBlazorApplicationInsightsAsync(IJSRuntime jSRuntime)
+        {
+            JSRuntime = jSRuntime;
+
+            if (OnInsightsInitAction != null)
+            {
+                await OnInsightsInitAction.Invoke(this);
+            }
         }
 
         public async Task TrackPageView(string? name = null, string? uri = null, string? refUri = null, string? pageType = null, bool? isLoggedIn = null, Dictionary<string, object>? properties = null)
@@ -49,9 +64,9 @@ namespace BlazorApplicationInsights
             await JSRuntime.InvokeVoidAsync("appInsights.trackMetric", new { name, average, sampleCount, min, max, properties });
         }
 
-        public async Task TrackDependencyData(string id, double responseCode, string? absoluteUrl = null, bool? success = null, string? commandName = null, double? duration = null, string? method = null, Dictionary<string, object>? properties = null)
+        public async Task TrackDependencyData(string id, string name, decimal? duration = null, bool? success = null, DateTime? startTime = null, int? responseCode = null, string? correlationContext = null, string? type = null, string? data = null, string? target = null)
         {
-            await JSRuntime.InvokeVoidAsync("appInsights.trackDependencyData", new { id, responseCode, absoluteUrl, success, commandName, duration, method, properties });
+            await JSRuntime.InvokeVoidAsync("blazorApplicationInsights.trackDependencyData", new { id, name, duration, success, startTime = startTime.HasValue ? startTime.Value.ToString("yyyy-MM-ddTHH:mm:ss") : null, responseCode, correlationContext, type, data, target });
         }
 
         public async Task Flush(bool? async = true)
