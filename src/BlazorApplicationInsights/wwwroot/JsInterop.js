@@ -66,5 +66,13 @@
         }
 
         appInsights.trackDependencyData(dependencyTelemetry);
-    }
+    },
+    setInstrumentationKey: function (instrumentationKey) {
+        appInsights.config.instrumentationKey = instrumentationKey;
+    },
+    loadAppInsights: function () {
+        if (appInsights.loadAppInsights !== undefined) {
+            appInsights.loadAppInsights();
+        }
+    },
 };
